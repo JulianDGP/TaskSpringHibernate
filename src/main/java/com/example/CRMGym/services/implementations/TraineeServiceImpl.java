@@ -40,14 +40,9 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     public Trainee getTrainee(Long id) {
-        Trainee trainee = traineeRepository.findById(id)
-                .orElse(null);
-        if (trainee == null) {
-            log.warn("Attempted to find a non-existing Trainee with ID: {}", id);
-            return null;
-        }
-        log.debug("Retrieved Trainee with ID: {}", id);
-        return trainee;
+        log.debug("Retrieving Trainee with ID: {}", id);
+        return traineeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trainee not found with ID: " + id));
     }
 
     @Override
