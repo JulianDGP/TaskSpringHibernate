@@ -1,7 +1,9 @@
 package com.example.CRMGym.controllers;
 
 import com.example.CRMGym.exceptions.ErrorResponse;
+import com.example.CRMGym.mappers.TraineeMapper;
 import com.example.CRMGym.models.Trainee;
+import com.example.CRMGym.models.dto.TraineeDTO;
 import com.example.CRMGym.services.TraineeService;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
 import org.slf4j.Logger;
@@ -28,9 +30,9 @@ public class TraineeController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<Trainee> getTrainee(@PathVariable Long id,
-                                              @RequestHeader("username") String authUsername,
-                                              @RequestHeader("password") String authPassword) {
+    public ResponseEntity<TraineeDTO> getTrainee(@PathVariable Long id,
+                                                 @RequestHeader("username") String authUsername,
+                                                 @RequestHeader("password") String authPassword) {
         log.debug("Received request to get trainee by ID: {}", id);
         if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
             Trainee trainee = traineeService.getTrainee(id);
@@ -38,8 +40,9 @@ public class TraineeController {
                 log.warn("No trainee found with ID: {}", id);
                 return ResponseEntity.notFound().build();
             }
+            TraineeDTO traineeDTO = TraineeMapper.toDTO(trainee);
             log.info("Returned trainee with ID: {}", id);
-            return ResponseEntity.ok(trainee);
+            return ResponseEntity.ok(traineeDTO);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
@@ -47,20 +50,22 @@ public class TraineeController {
 
 
     @GetMapping
-    public ResponseEntity<List<Trainee>> getAllTrainees(@RequestHeader("username") String authUsername,
+    public ResponseEntity<List<TraineeDTO>> getAllTrainees(@RequestHeader("username") String authUsername,
                                                         @RequestHeader("password") String authPassword) {
         log.debug("Received request to get all trainees");
         if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
             List<Trainee> trainees = traineeService.getAllTrainees();
-            log.info("Returned {} trainees", trainees.size());
-            return ResponseEntity.ok(trainees);
+            List<TraineeDTO> traineeDTOs = trainees.stream()
+                    .map(TraineeMapper::toDTO)
+                    .toList();
+            log.info("Returned {} trainees", traineeDTOs.size());
+            return ResponseEntity.ok(traineeDTOs);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<Trainee> getTraineeByUsername(@PathVariable String username,
+    public ResponseEntity<TraineeDTO> getTraineeByUsername(@PathVariable String username,
                                                         @RequestHeader("username") String authUsername,
                                                         @RequestHeader("password") String authPassword) {
         log.debug("Received request to get trainee by username: {}", username);
@@ -70,19 +75,22 @@ public class TraineeController {
                 log.warn("No trainee found with username: {}", username);
                 return ResponseEntity.notFound().build();
             }
+            TraineeDTO traineeDTO = TraineeMapper.toDTO(trainee);
             log.info("Returned trainee with username: {}", username);
-            return ResponseEntity.ok(trainee);
+            return ResponseEntity.ok(traineeDTO);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
 
     @PostMapping
-    public ResponseEntity<?> createTrainee(@RequestBody Trainee trainee) {
+    public ResponseEntity<?> createTrainee(@RequestBody TraineeDTO traineeDTO) {
         try {
-            log.debug("Received request to create a new trainee: {}", trainee);
+            log.debug("Received request to create a new trainee: {}", traineeDTO);
+            Trainee trainee = TraineeMapper.toEntity(traineeDTO);
             Trainee createdTrainee = traineeService.createTrainee(trainee);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdTrainee);
+            TraineeDTO createdTraineeDTO = TraineeMapper.toDTO(createdTrainee);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdTraineeDTO);
         } catch (IllegalArgumentException e) {
             log.error("Error creating trainee: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().body(new ErrorResponse("Error: " + e.getMessage(), HttpStatus.BAD_REQUEST.value()));
@@ -94,19 +102,22 @@ public class TraineeController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<Trainee> updateTrainee(@PathVariable Long id,
-                                                 @RequestBody Trainee trainee,
+    public ResponseEntity<TraineeDTO> updateTrainee(@PathVariable Long id,
+                                                 @RequestBody TraineeDTO traineeDTO,
                                                  @RequestHeader("username") String authUsername,
                                                  @RequestHeader("password") String authPassword) {
         log.debug("Received request to update trainee with ID: {}", id);
         if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
+            Trainee trainee = TraineeMapper.toEntity(traineeDTO);
+            trainee.setId(id);
             Trainee updatedTrainee = traineeService.updateTrainee(id, trainee);
             if (updatedTrainee == null) {
                 log.error("Failed to find trainee with ID: {} for update", id);
                 return ResponseEntity.notFound().build();
             }
             log.info("Successfully updated trainee with ID: {}", id);
-            return ResponseEntity.ok(updatedTrainee);
+            TraineeDTO updatedTraineeDTO = TraineeMapper.toDTO(updatedTrainee);
+            return ResponseEntity.ok(updatedTraineeDTO);
         } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }

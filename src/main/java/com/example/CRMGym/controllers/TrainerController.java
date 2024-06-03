@@ -1,7 +1,9 @@
 package com.example.CRMGym.controllers;
 
 import com.example.CRMGym.exceptions.ErrorResponse;
+import com.example.CRMGym.mappers.TrainerMapper;
 import com.example.CRMGym.models.Trainer;
+import com.example.CRMGym.models.dto.TrainerDTO;
 import com.example.CRMGym.services.TrainerService;
 import com.example.CRMGym.services.implementations.TrainerServiceImpl;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/trainers")
@@ -29,61 +32,65 @@ public class TrainerController {
     private UserGenerationUtilities userGenerationUtilities;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Trainer> getTrainer(@PathVariable Long id,
-                                              @RequestHeader("username") String authUsername,
-                                              @RequestHeader("password") String authPassword) {
+    public ResponseEntity<TrainerDTO> getTrainer(@PathVariable Long id,
+                                                 @RequestHeader("username") String authUsername,
+                                                 @RequestHeader("password") String authPassword) {
         log.debug("Received request to get trainer by ID: {}", id);
-        log.debug("Credentials received - Username: {}, Password: {}", authUsername, authPassword);
         if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
             Trainer trainer = trainerService.getTrainer(id);
             if (trainer == null) {
                 log.warn("No trainer found with ID: {}", id);
                 return ResponseEntity.notFound().build();
             }
+            TrainerDTO trainerDTO = TrainerMapper.toDTO(trainer);
             log.info("Returned trainer with ID: {}", id);
-            return ResponseEntity.ok(trainer);
+            return ResponseEntity.ok(trainerDTO);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-
     @GetMapping
-    public ResponseEntity<List<Trainer>> getAllTrainers(@RequestHeader("username") String authUsername,
-                                                        @RequestHeader("password") String authPassword) {
+    public ResponseEntity<List<TrainerDTO>> getAllTrainers(@RequestHeader("username") String authUsername,
+                                                           @RequestHeader("password") String authPassword) {
         log.debug("Received request to get all trainers");
         if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
             List<Trainer> trainers = trainerService.getAllTrainers();
-            log.info("Returned {} trainers", trainers.size());
-            return ResponseEntity.ok(trainers);
+            List<TrainerDTO> trainerDTOs = trainers.stream()
+                    .map(TrainerMapper::toDTO)
+                    .toList();
+            log.info("Returned {} trainers", trainerDTOs.size());
+            return ResponseEntity.ok(trainerDTOs);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<Trainer> getTrainerByUsername(@PathVariable String username,
-                                                        @RequestHeader("username") String authUsername,
-                                                        @RequestHeader("password") String authPassword) {
+    public ResponseEntity<TrainerDTO> getTrainerByUsername(@PathVariable String username,
+                                                           @RequestHeader("username") String authUsername,
+                                                           @RequestHeader("password") String authPassword) {
         log.debug("Received request to get trainer by username: {}", username);
-        log.debug("Credentials received - Username: {}, Password: {}", authUsername, authPassword);
         if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
             Trainer trainer = trainerService.getTrainerByUsername(username);
             if (trainer == null) {
                 log.warn("No trainer found with username: {}", username);
                 return ResponseEntity.notFound().build();
             }
+            TrainerDTO trainerDTO = TrainerMapper.toDTO(trainer);
             log.info("Returned trainer with username: {}", username);
-            return ResponseEntity.ok(trainer);
+            return ResponseEntity.ok(trainerDTO);
         }
         log.warn("Unauthorized access attempt with username: {}", authUsername);
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @PostMapping
-    public ResponseEntity<?> createTrainer(@RequestBody Trainer trainer) {
+    public ResponseEntity<?> createTrainer(@RequestBody TrainerDTO trainerDTO) {
         try {
-            log.debug("Received request to create a new trainer: {}", trainer);
+            log.debug("Received request to create a new trainer: {}", trainerDTO);
+            Trainer trainer = TrainerMapper.toEntity(trainerDTO);
             Trainer createdTrainer = trainerService.createTrainer(trainer);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdTrainer);
+            TrainerDTO createdTrainerDTO = TrainerMapper.toDTO(createdTrainer);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdTrainerDTO);
         } catch (IllegalArgumentException e) {
             log.error("Error creating trainer: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().body(new ErrorResponse("Error: " + e.getMessage(), HttpStatus.BAD_REQUEST.value()));
@@ -95,19 +102,22 @@ public class TrainerController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<Trainer> updateTrainer(@PathVariable Long id,
-                                                 @RequestBody Trainer trainer,
+    public ResponseEntity<TrainerDTO> updateTrainer(@PathVariable Long id,
+                                                 @RequestBody TrainerDTO trainerDTO,
                                                  @RequestHeader("username") String authUsername,
                                                  @RequestHeader("password") String authPassword) {
         log.debug("Received request to update trainer with ID: {}", id);
         if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
+            Trainer trainer = TrainerMapper.toEntity(trainerDTO);
+            trainer.setId(id);
             Trainer updatedTrainer = trainerService.updateTrainer(id, trainer);
             if (updatedTrainer == null) {
                 log.error("Failed to find trainer with ID: {} for update", id);
                 return ResponseEntity.notFound().build();
             }
+            TrainerDTO updatedTrainerDTO = TrainerMapper.toDTO(updatedTrainer);
             log.info("Successfully updated trainer with ID: {}", id);
-            return ResponseEntity.ok(updatedTrainer);
+            return ResponseEntity.ok(updatedTrainerDTO);
         } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
