@@ -1,23 +1,23 @@
 package com.example.CRMGym.models;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "trainees")
 public class Trainee extends User {
 
-    @NotNull(message = "Date of birth is required.")
-    @Column(nullable = false)
+    //@NotNull(message = "Date of birth is required.")
+    @Column(nullable = true)
     private LocalDate dateOfBirth;
-    @NotBlank(message = "Address is required.")
-    @Column(nullable = false)
+    //@NotBlank(message = "Address is required.")
+    @Column(nullable = true)
     private String address;
 
     public Trainee() {

@@ -1,7 +1,11 @@
 package com.example.CRMGym.mappers;
 
 import com.example.CRMGym.models.Trainer;
+import com.example.CRMGym.models.dto.TraineeDTO;
 import com.example.CRMGym.models.dto.TrainerDTO;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TrainerMapper {
 

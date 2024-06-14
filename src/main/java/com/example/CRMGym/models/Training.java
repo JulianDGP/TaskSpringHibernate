@@ -27,7 +27,7 @@ public class Training {
     @NotBlank(message = "Training name is required.")
     @Column(nullable = false)
     private String trainingName;
-    @Enumerated(EnumType.STRING)  // Guarda el nombre del Enum como String en la DB.
+    @Enumerated(EnumType.STRING)  // Save the Enum name as a string in the DB.
     @NotNull(message = "Training type is required.")
     @Column(nullable = false)
     private TrainingType trainingType;

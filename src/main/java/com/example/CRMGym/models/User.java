@@ -17,7 +17,6 @@ public abstract class User {
     @NotBlank(message = "First name is required.")
     @Column(nullable = false)
     private String firstName;
-
     @NotBlank(message = "Last name is required.")
     @Column(nullable = false)
     private String lastName;

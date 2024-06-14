@@ -7,14 +7,15 @@ import java.util.List;
 
 @Service
 public interface TrainerService {
-    List<Trainer> getAllTrainers();
+    Trainer createTrainer(Trainer trainer);
+
     Trainer getTrainer(Long id);
     Trainer getTrainerByUsername(String username);
-    Trainer createTrainer(Trainer trainer);
-    Trainer updateTrainer(Long id, Trainer trainer);
-
-    void changeTrainerPassword(Long id, String newPassword);
-    void deleteTrainerByUsername(String username);
-    void activateTrainer(Long id, boolean isActive);
+//    Trainer updateTrainer(Long id, Trainer trainer);
+//    List<Trainer> getAllTrainers();
+//
+//    void changeTrainerPassword(Long id, String newPassword);
+//    void deleteTrainerByUsername(String username);
+//    void activateTrainer(Long id, boolean isActive);
 }
 
