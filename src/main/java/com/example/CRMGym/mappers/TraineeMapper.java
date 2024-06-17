@@ -2,6 +2,7 @@ package com.example.CRMGym.mappers;
 
 import com.example.CRMGym.models.Trainee;
 import com.example.CRMGym.models.dto.TraineeDTO;
+import com.example.CRMGym.models.dto.TraineeProfileDTO;
 import com.example.CRMGym.models.dto.TrainerDTO;
 
 import java.util.List;
@@ -20,7 +21,8 @@ public class TraineeMapper {
                 trainee.getLastName(),
                 trainee.getUsername(),
                 trainee.getDateOfBirth(),
-                trainee.getAddress()
+                trainee.getAddress(),
+                trainee.isActive()
         );
     }
 
@@ -36,6 +38,24 @@ public class TraineeMapper {
         trainee.setUsername(traineeDTO.username());
         trainee.setDateOfBirth(traineeDTO.dateOfBirth());
         trainee.setAddress(traineeDTO.address());
+        trainee.setActive(traineeDTO.isActive());
         return trainee;
+    }
+
+    // Converts a Trainee entity to a TraineeProfileDTO.
+    public static TraineeProfileDTO toProfileDTO(Trainee trainee, List<TrainerDTO> trainerDTOs) {
+        if (trainee == null) {
+            return null;
+        }
+        return new TraineeProfileDTO(
+                trainee.getId(),
+                trainee.getFirstName(),
+                trainee.getLastName(),
+                trainee.getUsername(),
+                trainee.getDateOfBirth(),
+                trainee.getAddress(),
+                trainee.isActive(),
+                trainerDTOs
+        );
     }
 }

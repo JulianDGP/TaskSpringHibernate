@@ -1,9 +1,12 @@
 package com.example.CRMGym.services;
 
 import com.example.CRMGym.models.Trainee;
-import com.example.CRMGym.models.Trainer;
+import com.example.CRMGym.models.dto.TraineeDTO;
 import com.example.CRMGym.models.dto.TraineeProfileDTO;
+import com.example.CRMGym.models.dto.TrainerDTO;
+import com.example.CRMGym.models.dto.TrainingDTO;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TraineeService {
@@ -12,11 +15,14 @@ public interface TraineeService {
     Trainee getTrainee(Long id);
     Trainee getTraineeByUsername(String username);
     TraineeProfileDTO getTraineeProfile(String username);
-//    List<Trainer> getAssignedTrainers(String traineeUsername);
-//    List<Trainee> getAllTrainees();
-//    Trainee updateTrainee(Long id, Trainee trainee);
-//    void deleteTraineeByUsername(String username);
-//    void activateTrainee(Long id, boolean isActive);
+    TraineeProfileDTO updateTraineeProfile(String username, TraineeDTO traineeDTO);
+    void deleteTraineeByUsername(String username);
+    List<TrainerDTO> getNotAssignedActiveTrainers(String username);
 
-//    void changeTraineePassword(Long id, String newPassword);
+    List<TrainingDTO> getTraineeTrainings(String username, LocalDateTime fromDate, LocalDateTime toDate, String trainerName, String trainingType);
+
+    void updateTraineeActiveStatus(String username, boolean isActive);
+
+//    List<Trainee> getAllTrainees();
+
 }

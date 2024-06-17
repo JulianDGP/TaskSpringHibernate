@@ -1,8 +1,6 @@
 package com.example.CRMGym.controllers;
 
 import com.example.CRMGym.exceptions.ErrorResponse;
-import com.example.CRMGym.models.User;
-import com.example.CRMGym.repositories.UserRepository;
 import com.example.CRMGym.security.JwtTokenProvider;
 import com.example.CRMGym.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +10,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
@@ -28,10 +24,6 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
 
     /* 3.Login with GET method */
     @PostMapping("/login")

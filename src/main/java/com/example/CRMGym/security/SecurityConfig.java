@@ -57,6 +57,8 @@ public class SecurityConfig {
         return http.build();
     }
 
+}
+
     //codigo anterior
 
 //    @Bean
@@ -72,4 +74,3 @@ public class SecurityConfig {
 //
 //        return http.build();
 //    }
-}

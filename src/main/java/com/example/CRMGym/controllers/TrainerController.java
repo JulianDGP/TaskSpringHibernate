@@ -4,17 +4,21 @@ import com.example.CRMGym.exceptions.ErrorResponse;
 import com.example.CRMGym.mappers.TrainerMapper;
 import com.example.CRMGym.models.Trainer;
 import com.example.CRMGym.models.dto.TrainerDTO;
+import com.example.CRMGym.models.dto.TrainerProfileDTO;
+import com.example.CRMGym.models.dto.TrainingDTO;
 import com.example.CRMGym.services.TrainerService;
 import com.example.CRMGym.services.implementations.TrainerServiceImpl;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +84,62 @@ public class TrainerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
+
+    /* 8. Get Trainer Profile with trainees with GET method */
+    @GetMapping("/profile/{username}")
+    public ResponseEntity<?> getTrainerProfile(@PathVariable String username) {
+        try {
+            TrainerProfileDTO trainerProfileDTO = trainerService.getTrainerProfile(username);
+            return ResponseEntity.ok(trainerProfileDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainer not found", HttpStatus.NOT_FOUND.value()));
+        }
+    }
+
+    /* 9. Update Trainer Profile with PUT method */
+    @PutMapping("/profile/{username}")
+    public ResponseEntity<?> updateTrainerProfile(@PathVariable String username, @RequestBody TrainerDTO trainerDTO) {
+        try {
+            TrainerProfileDTO updatedTrainerProfileDTO = trainerService.updateTrainerProfile(username, trainerDTO);
+            return ResponseEntity.ok(updatedTrainerProfileDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainer not found", HttpStatus.NOT_FOUND.value()));
+        }
+    }
+
+    /* 13. Get Trainer Trainings List with GET method */
+    @GetMapping("/trainings")
+    public ResponseEntity<?> getTrainerTrainings(@RequestParam String username,
+                                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+                                                 @RequestParam(required = false) String traineeName) {
+        try {
+            List<TrainingDTO> trainings = trainerService.getTrainerTrainings(username, fromDate, toDate, traineeName);
+            return ResponseEntity.ok(trainings);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainer or Trainings not found", HttpStatus.NOT_FOUND.value()));
+        }
+    }
+
+    /* 16. Activate/De-Activate Trainer with PATCH method */
+    @PatchMapping("/activate")
+    public ResponseEntity<?> updateTrainerActiveStatus(@RequestBody Map<String, Object> payload) {
+        try {
+            String username = (String) payload.get("username");
+            boolean isActive = (Boolean) payload.get("isActive");
+
+            if (username == null || username.isBlank()) {
+                return ResponseEntity.badRequest().body(new ErrorResponse("Username is required.", HttpStatus.BAD_REQUEST.value()));
+            }
+
+            trainerService.updateTrainerActiveStatus(username, isActive);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error updating active status for trainer with username: {}", payload.get("username"), e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainer not found", HttpStatus.NOT_FOUND.value()));
+        }
+    }
+
 
 }
 

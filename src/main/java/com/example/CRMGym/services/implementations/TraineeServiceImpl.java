@@ -1,12 +1,18 @@
 package com.example.CRMGym.services.implementations;
 
+import com.example.CRMGym.mappers.TraineeMapper;
 import com.example.CRMGym.mappers.TrainerMapper;
+import com.example.CRMGym.mappers.TrainingMapper;
 import com.example.CRMGym.models.Trainee;
 import com.example.CRMGym.models.Trainer;
 import com.example.CRMGym.models.Training;
+import com.example.CRMGym.models.dto.TraineeDTO;
 import com.example.CRMGym.models.dto.TraineeProfileDTO;
 import com.example.CRMGym.models.dto.TrainerDTO;
+import com.example.CRMGym.models.dto.TrainingDTO;
 import com.example.CRMGym.repositories.TraineeRepository;
+import com.example.CRMGym.repositories.TrainerRepository;
+import com.example.CRMGym.repositories.TrainingRepository;
 import com.example.CRMGym.services.TraineeService;
 import com.example.CRMGym.services.TrainingService;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
@@ -18,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,12 +38,16 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
 
     @Autowired
-    private final TrainingService trainingService;
+    private TrainerRepository trainerRepository;
 
     @Autowired
-    public TraineeServiceImpl(TraineeRepository traineeRepository, TrainingService trainingService) {
+    private TrainingRepository trainingRepository;
+
+    @Autowired
+    public TraineeServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository, TrainingRepository trainingRepository) {
         this.traineeRepository = traineeRepository;
-        this.trainingService = trainingService;
+        this.trainerRepository = trainerRepository;
+        this.trainingRepository = trainingRepository;
     }
 
     /* 1.Trainee Registration */
@@ -50,6 +61,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Trainee getTrainee(Long id) {
         log.debug("Retrieving Trainee with ID: {}", id);
         return traineeRepository.findById(id)
@@ -57,17 +69,48 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Trainee getTraineeByUsername(String username) {
         log.debug("Retrieving Trainee by username: {}", username);
         return traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Trainee not found with username: " + username));
     }
     @Override
+    @Transactional(readOnly = true)
     public TraineeProfileDTO getTraineeProfile(String username) {
         Trainee trainee = traineeRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Trainee not found with username: " + username));
 
-        Set<Training> trainings = trainingService.findTrainingsByTraineeId(trainee.getId());
+        Set<Training> trainings = trainingRepository.findByTraineeId(trainee.getId());
+        Set<Trainer> trainers = trainings.stream()
+                .map(Training::getTrainer)
+                .collect(Collectors.toSet());
+        List<TrainerDTO> trainerDTOs = trainers.stream()
+                .map(TrainerMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return TraineeMapper.toProfileDTO(trainee, trainerDTOs);
+    }
+
+    @Override
+    @Transactional
+    public TraineeProfileDTO updateTraineeProfile(String username, TraineeDTO traineeDTO) {
+        Trainee trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Trainee not found with username: " + username));
+
+        // Ensure the username in DTO matches the username in the path
+        if (!traineeDTO.username().equals(username)) {
+            throw new IllegalArgumentException("Username cannot be changed.");
+        }
+        trainee.setFirstName(traineeDTO.firstName());
+        trainee.setLastName(traineeDTO.lastName());
+        trainee.setDateOfBirth(traineeDTO.dateOfBirth());
+        trainee.setAddress(traineeDTO.address());
+        trainee.setActive(traineeDTO.isActive());
+
+        Trainee updatedTrainee = traineeRepository.save(trainee);
+
+        Set<Training> trainings = trainingRepository.findByTraineeId(trainee.getId());
         Set<Trainer> trainers = trainings.stream()
                 .map(Training::getTrainer)
                 .collect(Collectors.toSet());
@@ -76,16 +119,62 @@ public class TraineeServiceImpl implements TraineeService {
                 .map(TrainerMapper::toDTO)
                 .collect(Collectors.toList());
 
-        return new TraineeProfileDTO(
-                trainee.getId(),
-                trainee.getFirstName(),
-                trainee.getLastName(),
-                trainee.getUsername(),
-                trainee.getDateOfBirth(),
-                trainee.getAddress(),
-                trainee.isActive(),
-                trainerDTOs
-        );
+        return TraineeMapper.toProfileDTO(updatedTrainee, trainerDTOs);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTraineeByUsername(String username) {
+        Trainee trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Trainee not found with username: " + username));
+
+        // Ensures that related workouts are cascaded away
+        traineeRepository.delete(trainee);
+        log.info("Deleted trainee with username: {}", username);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrainerDTO> getNotAssignedActiveTrainers(String username) {
+        Trainee trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Trainee not found with username: " + username));
+
+        List<Trainer> activeTrainers = trainerRepository.findAllByIsActive(true);
+        List<Trainer> assignedTrainers = trainerRepository.findTrainersByTraineeId(trainee.getId());
+
+        Set<Long> assignedTrainerIds = assignedTrainers.stream()
+                .map(Trainer::getId)
+                .collect(Collectors.toSet());
+
+        List<Trainer> notAssignedTrainers = activeTrainers.stream()
+                .filter(trainer -> !assignedTrainerIds.contains(trainer.getId()))
+                .toList();
+
+        return notAssignedTrainers.stream()
+                .map(TrainerMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrainingDTO> getTraineeTrainings(String username, LocalDateTime fromDate, LocalDateTime toDate, String trainerName, String trainingType) {
+        List<Training> trainings = trainingRepository.findTrainingsByFilters(username, fromDate, toDate, trainerName, trainingType);
+        return trainings.stream()
+                .map(TrainingMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void updateTraineeActiveStatus(String username, boolean isActive) {
+        Trainee trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Trainee not found with username: " + username));
+
+        trainee.setActive(isActive);
+        traineeRepository.save(trainee);
+
+        log.info("Updated trainee with username: {} to active status: {}", username, isActive);
     }
 }
 
@@ -96,38 +185,7 @@ public class TraineeServiceImpl implements TraineeService {
 //        return traineeRepository.findAll();
 //    }
 
-//    @Override
-//    public Trainee updateTrainee(Long id, Trainee trainee) {
-//        log.debug("Updating Trainee with ID: {}", id);
-//        Trainee savedTrainee = traineeRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("Trainee not found with ID: " + id));
-//        savedTrainee.setFirstName(trainee.getFirstName());
-//        savedTrainee.setLastName(trainee.getLastName());
-//        savedTrainee.setDateOfBirth(trainee.getDateOfBirth());
-//        savedTrainee.setAddress(trainee.getAddress());
-//
-//        return traineeRepository.save(savedTrainee);
-//    }
 
-//    @Override
-//    public void changeTraineePassword(Long id, String newPassword) {
-//        Trainee trainee = traineeRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("Trainee not found with ID: " + id));
-//        log.info("This is the changed newPassword for testing: {}", newPassword);
-//        String encodedPassword = passwordEncoder.encode(newPassword);
-//        trainee.setPassword(encodedPassword);
-//        traineeRepository.save(trainee);
-//        log.info("Trainee with ID: {} has changed their password", id);
-//    }
-
-//    @Override
-//    public void deleteTraineeByUsername(String username) {
-//        log.debug("Deleting Trainee with username: {}", username);
-//        Trainee trainee = traineeRepository.findByUsername(username)
-//                .orElseThrow(() -> new RuntimeException("Trainee not found with username: " + username));
-//        traineeRepository.delete(trainee);
-//        log.info("Trainee with username: {} has been deleted", username);
-//    }
 //
 //
 //

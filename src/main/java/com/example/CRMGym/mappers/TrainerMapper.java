@@ -3,6 +3,7 @@ package com.example.CRMGym.mappers;
 import com.example.CRMGym.models.Trainer;
 import com.example.CRMGym.models.dto.TraineeDTO;
 import com.example.CRMGym.models.dto.TrainerDTO;
+import com.example.CRMGym.models.dto.TrainerProfileDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,5 +38,21 @@ public class TrainerMapper {
         trainer.setActive(trainerDTO.isActive());
         trainer.setSpecialization(trainerDTO.specialization());
         return trainer;
+    }
+
+    //Converts a Trainer entity to a TrainerProfileDTO.
+    public static TrainerProfileDTO toProfileDTO(Trainer trainer, List<TraineeDTO> trainees) {
+        if (trainer == null) {
+            return null;
+        }
+        return new TrainerProfileDTO(
+                trainer.getId(),
+                trainer.getFirstName(),
+                trainer.getLastName(),
+                trainer.getUsername(),
+                trainer.isActive(),
+                trainer.getSpecialization(),
+                trainees
+        );
     }
 }
