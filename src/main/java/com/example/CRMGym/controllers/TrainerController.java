@@ -9,6 +9,8 @@ import com.example.CRMGym.models.dto.TrainingDTO;
 import com.example.CRMGym.services.TrainerService;
 import com.example.CRMGym.services.implementations.TrainerServiceImpl;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,7 @@ public class TrainerController {
     private PasswordEncoder passwordEncoder;
 
     /*2.Trainer Registration with POST method */
+    @Operation(summary = "Register Trainer", description = "Register a new trainer")
     @PostMapping("/register")
     public ResponseEntity<?> registerTrainer(@RequestBody TrainerDTO trainerDTO) {
         try {
@@ -86,6 +89,7 @@ public class TrainerController {
     }
 
     /* 8. Get Trainer Profile with trainees with GET method */
+    @Operation(summary = "Get Trainer Profile", description = "Get trainer profile", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/profile/{username}")
     public ResponseEntity<?> getTrainerProfile(@PathVariable String username) {
         try {
@@ -97,6 +101,7 @@ public class TrainerController {
     }
 
     /* 9. Update Trainer Profile with PUT method */
+    @Operation(summary = "Update Trainer Profile", description = "Update trainer profile", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/profile/{username}")
     public ResponseEntity<?> updateTrainerProfile(@PathVariable String username, @RequestBody TrainerDTO trainerDTO) {
         try {
@@ -108,6 +113,7 @@ public class TrainerController {
     }
 
     /* 13. Get Trainer Trainings List with GET method */
+    @Operation(summary = "Get Trainer Trainings List", description = "Get list of trainings for a trainer", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/trainings")
     public ResponseEntity<?> getTrainerTrainings(@RequestParam String username,
                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
@@ -122,6 +128,7 @@ public class TrainerController {
     }
 
     /* 16. Activate/De-Activate Trainer with PATCH method */
+    @Operation(summary = "Activate/De-Activate Trainer", description = "Activate or de-activate a trainer", security = @SecurityRequirement(name = "bearerAuth"))
     @PatchMapping("/activate")
     public ResponseEntity<?> updateTrainerActiveStatus(@RequestBody Map<String, Object> payload) {
         try {

@@ -12,6 +12,8 @@ import com.example.CRMGym.models.dto.TrainingRequestDTO;
 import com.example.CRMGym.services.TrainingService;
 import com.example.CRMGym.services.implementations.TrainingServiceImpl;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,7 @@ public class TrainingController {
     private TrainingService trainingService;
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get Training", description = "Get training by ID", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<TrainingDTO> getTraining(@PathVariable Long id) {
         log.debug("Received request to get training by ID: {}", id);
         Training training = trainingService.getTraining(id);
@@ -49,6 +52,7 @@ public class TrainingController {
     }
 
     /* 14. Add Training with Post Method */
+    @Operation(summary = "Add Training", description = "Create a new training", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/create")
     public ResponseEntity<?> createTraining(@RequestBody TrainingRequestDTO trainingRequestDTO) {
         try {
@@ -67,6 +71,7 @@ public class TrainingController {
     }
 
     /* 17. Get Training types with GET method */
+    @Operation(summary = "Get Training Types", description = "Get all training types", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/types")
     public ResponseEntity<List<Map<String, String>>> getAllTrainingTypes() {
         List<Map<String, String>> trainingTypes = Arrays.stream(TrainingType.values())

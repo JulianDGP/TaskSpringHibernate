@@ -42,21 +42,23 @@ public class SecurityConfig {
     }
 
     // Configura la cadena de filtros de seguridad, deshabilitando CSRF y configurando el filtro JWT
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/login").permitAll()  // Permitir acceso al endpoint de login
-                        .requestMatchers("/api/trainees/register").permitAll()  // Permitir acceso a la creación de trainees
-                        .requestMatchers("/api/trainers/register").permitAll()  // Permitir acceso a la creación de trainers
-                        .anyRequest().authenticated()  // Requiere autenticación para cualquier otra solicitud
+                        .requestMatchers("/api/auth/login").permitAll()// Permitir acceso al endpoint de login
+                        .requestMatchers("/api/trainees/register").permitAll()// Permitir acceso a la creación de trainees
+                        .requestMatchers("/api/trainers/register").permitAll()// Permitir acceso a la creación de trainers
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Permitir acceso a los endpoints de Swagger
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtTokenFilter(jwtTokenProvider, userDetailsService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
 }
 
     //codigo anterior

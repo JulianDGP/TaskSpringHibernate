@@ -3,6 +3,8 @@ package com.example.CRMGym.controllers;
 import com.example.CRMGym.exceptions.ErrorResponse;
 import com.example.CRMGym.security.JwtTokenProvider;
 import com.example.CRMGym.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,7 @@ public class AuthController {
     private UserService userService;
 
     /* 3.Login with GET method */
+    @Operation(summary = "Login", description = "User login")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
@@ -46,6 +49,7 @@ public class AuthController {
 
 
     /* 4. Change Login password with PUT */
+    @Operation(summary = "Change Password", description = "Change user password", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request) {
         String username = request.get("username");

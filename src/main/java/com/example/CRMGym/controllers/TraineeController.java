@@ -9,6 +9,9 @@ import com.example.CRMGym.models.dto.TrainerDTO;
 import com.example.CRMGym.models.dto.TrainingDTO;
 import com.example.CRMGym.services.TraineeService;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Trainee", description = "Operations related to trainees")
 @RestController
 @RequestMapping("/api/trainees")
 public class TraineeController {
@@ -38,6 +42,7 @@ public class TraineeController {
     private PasswordEncoder passwordEncoder;
 
     /* 1.Trainee Registration with POST method */
+    @Operation(summary = "Register a new trainee")
     @PostMapping("/register")
     public ResponseEntity<?> registerTrainee(@RequestBody TraineeDTO traineeDTO) {
         try {
@@ -76,6 +81,7 @@ public class TraineeController {
 
 
     /* 5. Get Trainee Profile with trainers with GET method */
+    @Operation(summary = "Get trainee profile", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/profile/{username}")
     public ResponseEntity<?> getTraineeProfile(@PathVariable String username) {
         try {
@@ -87,6 +93,8 @@ public class TraineeController {
     }
 
     /* 6. Update Trainee Profile with PUT method */
+
+    @Operation(summary = "Update trainee profile", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/profile/{username}")
     public ResponseEntity<?> updateTraineeProfile(@PathVariable String username, @RequestBody TraineeDTO traineeDTO) {
         try {
@@ -98,6 +106,7 @@ public class TraineeController {
     }
 
     /* 7. Delete Trainee Profile with DELETE method */
+    @Operation(summary = "Delete trainee profile", security = @SecurityRequirement(name = "bearerAuth"))
     @DeleteMapping("/profile/{username}")
     public ResponseEntity<?> deleteTraineeProfile(@PathVariable String username) {
         try {
@@ -109,6 +118,7 @@ public class TraineeController {
     }
 
     /* 10.Get not assigned on trainee active trainers. */
+    @Operation(summary = "Get not assigned active trainers for a trainee", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/not-assigned/{username}")
     public ResponseEntity<?> getNotAssignedActiveTrainers(@PathVariable String username) {
         try {
@@ -120,6 +130,7 @@ public class TraineeController {
     }
 
     /* 12. Get Trainee Trainings List with GET method */
+    @Operation(summary = "Get trainee's training list", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/trainings")
     public ResponseEntity<?> getTraineeTrainings(@RequestParam String username,
                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
@@ -135,6 +146,7 @@ public class TraineeController {
     }
 
     /* 15. Activate/De-Activate Trainee with PATCH method */
+    @Operation(summary = "Activate/De-Activate trainee", security = @SecurityRequirement(name = "bearerAuth"))
     @PatchMapping("/activate")
     public ResponseEntity<?> updateTraineeActiveStatus(@RequestBody Map<String, Object> payload) {
         try {
@@ -153,7 +165,6 @@ public class TraineeController {
         }
     }
 }
-
 
 
 //    @GetMapping("/{id}")
