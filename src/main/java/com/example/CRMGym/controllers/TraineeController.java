@@ -12,6 +12,7 @@ import com.example.CRMGym.utilities.UserGenerationUtilities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,16 +45,10 @@ public class TraineeController {
     /* 1.Trainee Registration with POST method */
     @Operation(summary = "Register a new trainee")
     @PostMapping("/register")
-    public ResponseEntity<?> registerTrainee(@RequestBody TraineeDTO traineeDTO) {
+    public ResponseEntity<?> registerTrainee(@Valid @RequestBody TraineeDTO traineeDTO) {
         try {
             log.debug("Received request to create a new trainee: {}", traineeDTO);
-            // Required fields validation
-            if (traineeDTO.firstName() == null || traineeDTO.firstName().isBlank()) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("First Name is required.", HttpStatus.BAD_REQUEST.value()));
-            }
-            if (traineeDTO.lastName() == null || traineeDTO.lastName().isBlank()) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("Last Name is required.", HttpStatus.BAD_REQUEST.value()));
-            }
+
             // Convert DTO to entity
             Trainee trainee = TraineeMapper.toEntity(traineeDTO);
             // Generate Username and Password
@@ -140,7 +135,7 @@ public class TraineeController {
         try {
             List<TrainingDTO> trainings = traineeService.getTraineeTrainings(username, fromDate, toDate, trainerName, trainingType);
             return ResponseEntity.ok(trainings);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainee or Trainings not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -166,75 +161,3 @@ public class TraineeController {
     }
 }
 
-
-//    @GetMapping("/{id}")
-//    public ResponseEntity<TraineeDTO> getTrainee(@PathVariable Long id,
-//                                                 @RequestHeader("username") String authUsername,
-//                                                 @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get trainee by ID: {}", id);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            Trainee trainee = traineeService.getTrainee(id);
-//            if (trainee == null) {
-//                log.warn("No trainee found with ID: {}", id);
-//                return ResponseEntity.notFound().build();
-//            }
-//            TraineeDTO traineeDTO = TraineeMapper.toDTO(trainee);
-//            log.info("Returned trainee with ID: {}", id);
-//            return ResponseEntity.ok(traineeDTO);
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-
-//    @GetMapping
-//    public ResponseEntity<List<TraineeDTO>> getAllTrainees(@RequestHeader("username") String authUsername,
-//                                                           @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get all trainees");
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            List<Trainee> trainees = traineeService.getAllTrainees();
-//            List<TraineeDTO> traineeDTOs = trainees.stream()
-//                    .map(TraineeMapper::toDTO)
-//                    .toList();
-//            log.info("Returned {} trainees", traineeDTOs.size());
-//            return ResponseEntity.ok(traineeDTOs);
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-
-//    @GetMapping("/username/{username}")
-//    public ResponseEntity<TraineeDTO> getTraineeByUsername(@PathVariable String username,
-//                                                           @RequestHeader("username") String authUsername,
-//                                                           @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get trainee by username: {}", username);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            Trainee trainee = traineeService.getTraineeByUsername(username);
-//            if (trainee == null) {
-//                log.warn("No trainee found with username: {}", username);
-//                return ResponseEntity.notFound().build();
-//            }
-//            TraineeDTO traineeDTO = TraineeMapper.toDTO(trainee);
-//            log.info("Returned trainee with username: {}", username);
-//            return ResponseEntity.ok(traineeDTO);
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-
-//
-//    @PutMapping("/activate/{id}")
-//    public ResponseEntity<Void> activateTrainee(@PathVariable Long id,
-//                                                @RequestParam boolean isActive,
-//                                                @RequestHeader("username") String authUsername,
-//                                                @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to activate/deactivate trainee with ID: {}", id);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            try {
-//                traineeService.activateTrainee(id, isActive);
-//                log.info("Trainee with ID: {} has been {}", id, isActive ? "activated" : "deactivated");
-//                return ResponseEntity.ok().build();
-//            } catch (Exception e) {
-//                log.error("Failed to activate/deactivate trainee with ID: {}", id, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//            }
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//        }
-//    }

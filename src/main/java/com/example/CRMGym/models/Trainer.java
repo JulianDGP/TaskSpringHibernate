@@ -13,6 +13,9 @@ public class Trainer extends User {
     @NotBlank(message = "Specialization is required.")
     @Column(nullable = true)
     private String specialization;
+    // Relationships with cascade delete
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Training> trainings = new HashSet<>();
 
     public Trainer() {
     }
@@ -21,13 +24,19 @@ public class Trainer extends User {
         this.specialization = specialization;
     }
 
-
-
     public String getSpecialization() {
         return specialization;
     }
 
     public void setSpecialization(String specialization) {
         this.specialization = specialization;
+    }
+
+    public Set<Training> getTrainings() {
+        return trainings;
+    }
+
+    public void setTrainings(Set<Training> trainings) {
+        this.trainings = trainings;
     }
 }

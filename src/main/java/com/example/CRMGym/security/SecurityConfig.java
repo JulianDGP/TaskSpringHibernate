@@ -60,19 +60,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
-    //codigo anterior
-
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(authorize -> authorize
-//                        .anyRequest().permitAll()
-//                )
-//                .headers(headers -> headers
-//                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
-//                );
-//
-//        return http.build();
-//    }

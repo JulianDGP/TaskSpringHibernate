@@ -39,16 +39,17 @@ public class TrainingController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get Training", description = "Get training by ID", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<TrainingDTO> getTraining(@PathVariable Long id) {
+    public ResponseEntity<?> getTraining(@PathVariable Long id) {
         log.debug("Received request to get training by ID: {}", id);
-        Training training = trainingService.getTraining(id);
-        if (training == null) {
+        try {
+            Training training = trainingService.getTraining(id);
+            TrainingDTO trainingDTO = TrainingMapper.toDTO(training);
+            log.info("Returned training with ID: {}", id);
+            return ResponseEntity.ok(trainingDTO);
+        } catch (RuntimeException e) {
             log.warn("No training found with ID: {}", id);
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Training not found with ID: " + id, HttpStatus.NOT_FOUND.value()));
         }
-        TrainingDTO trainingDTO = TrainingMapper.toDTO(training);
-        log.info("Returned training with ID: {}", id);
-        return ResponseEntity.ok(trainingDTO);
     }
 
     /* 14. Add Training with Post Method */
@@ -85,163 +86,3 @@ public class TrainingController {
     }
 
 }
-
-//    @GetMapping("/trainee/{username}")
-//    public ResponseEntity<?> getTraineeTrainings(@PathVariable String username,
-//                                                 @RequestParam LocalDate fromDate,
-//                                                 @RequestParam LocalDate toDate,
-//                                                 @RequestParam(required = false) String trainerName,
-//                                                 @RequestParam(required = false) String trainingType) {
-//        log.debug("Received request to get trainings for trainee: {}", username);
-//        try {
-//            List<Training> trainings = trainingService.getTraineeTrainings(username, fromDate, toDate, trainerName, trainingType);
-//            log.info("Returned {} trainings for trainee: {}", trainings.size(), username);
-//            List<TrainingDTO> trainingDTOs = trainings.stream()
-//                    .map(trainingMapper::toDTO)
-//                    .collect(Collectors.toList());
-//            return ResponseEntity.ok(trainingDTOs);
-//        } catch (Exception e) {
-//            log.error("Failed to retrieve trainings for trainee: {}", username, e);
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR.value()));
-//        }
-//    }
-
-//
-//    @PutMapping("/{id}")
-//    public ResponseEntity<?> updateTraining(@PathVariable Long id,
-//                                            @RequestBody TrainingDTO trainingDTO,
-//                                            @RequestHeader("username") String username,
-//                                            @RequestHeader("password") String password) {
-//        log.debug("Received request to update training with ID: {}", id);
-//        if (userGenerationUtilities.checkCredentials(username, password)) {
-//            try {
-//                Training training = trainingMapper.toEntity(trainingDTO);
-//                training.setId(id);
-//                Training updatedTraining = trainingService.updateTraining(id, training);
-//                TrainingDTO updatedTrainingDTO = TrainingMapper.toDTO(updatedTraining);
-//                log.info("Successfully updated training with ID: {}", id);
-//                return ResponseEntity.ok(updatedTrainingDTO);
-//            } catch (Exception e) {
-//                log.error("Failed to update training with ID: {}", id, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
-//                        body(new ErrorResponse("An unexpected error occurred",
-//                                HttpStatus.INTERNAL_SERVER_ERROR.value()));
-//            }
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-//
-//}
-
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteTraining(@PathVariable Long id,
-//                                               @RequestHeader("username") String username,
-//                                               @RequestHeader("password") String password) {
-//        log.debug("Received request to delete training with ID: {}", id);
-//        if (userGenerationUtilities.checkCredentials(username, password)) {
-//            try {
-//                trainingService.deleteTraining(id);
-//                log.info("Successfully deleted training with ID: {}", id);
-//                return ResponseEntity.ok().build();
-//            } catch (Exception e) {
-//                log.error("Failed to delete training with ID: {}", id, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//            }
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-
-
-//    @GetMapping("/trainee/{username}")
-//    public ResponseEntity<?> getTraineeTrainings(@PathVariable String username,
-//                                                 @RequestParam LocalDate fromDate,
-//                                                 @RequestParam LocalDate toDate,
-//                                                 @RequestParam(required = false) String trainerName,
-//                                                 @RequestParam(required = false) String trainingType,
-//                                                 @RequestHeader("username") String authUsername,
-//                                                 @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get trainings for trainee: {}", username);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            try {
-//                List<Training> trainings = trainingService.getTraineeTrainings(username, fromDate, toDate, trainerName, trainingType);
-//                log.info("Returned {} trainings for trainee: {}", trainings.size(), username);
-//                List<TrainingDTO> trainingDTOs = trainings.stream()
-//                        .map(TrainingMapper::toDTO)
-//                        .toList();
-//                return ResponseEntity.ok(trainingDTOs);
-//            } catch (Exception e) {
-//                log.error("Failed to retrieve trainings for trainee: {}", username, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
-//                        body(new ErrorResponse("An unexpected error occurred",
-//                                HttpStatus.INTERNAL_SERVER_ERROR.value()));
-//            }
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-//
-//    @GetMapping("/trainer/{username}")
-//    public ResponseEntity<?> getTrainerTrainings(@PathVariable String username,
-//                                                 @RequestParam LocalDate fromDate,
-//                                                 @RequestParam LocalDate toDate,
-//                                                 @RequestParam(required = false) String traineeName,
-//                                                 @RequestHeader("username") String authUsername,
-//                                                 @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get trainings for trainer: {}", username);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            try {
-//                List<Training> trainings = trainingService.getTrainerTrainings(username, fromDate, toDate, traineeName);
-//                List<TrainingDTO> trainingDTOs = trainings.stream()
-//                        .map(TrainingMapper::toDTO)
-//                        .toList();
-//                log.info("Returned {} trainings for trainer: {}", trainingDTOs.size(), username);
-//                return ResponseEntity.ok(trainingDTOs);
-//            } catch (Exception e) {
-//                log.error("Failed to retrieve trainings for trainer: {}", username, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR.value()));
-//            }
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-//
-//    @GetMapping("/unassigned-trainers/{traineeUsername}")
-//    public ResponseEntity<?> getUnassignedTrainers(@PathVariable String traineeUsername,
-//                                                   @RequestHeader("username") String authUsername,
-//                                                   @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get unassigned trainers for trainee: {}", traineeUsername);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            try {
-//                List<Trainer> trainers = trainingService.getUnassignedTrainers(traineeUsername);
-//                List<TrainerDTO> trainerDTOs = trainers.stream()
-//                        .map(TrainerMapper::toDTO)
-//                        .toList();
-//                log.info("Returned {} unassigned trainers for trainee: {}", trainers.size(), traineeUsername);
-//                return ResponseEntity.ok(trainerDTOs);
-//            } catch (Exception e) {
-//                log.error("Failed to retrieve unassigned trainers for trainee: {}", traineeUsername, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR.value()));
-//            }
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-
-//    @PutMapping("/update-trainers-list/{traineeUsername}")
-//    public ResponseEntity<Void> updateTraineeTrainersList(@PathVariable String traineeUsername,
-//                                                          @RequestBody List<Long> trainerIds,
-//                                                          @RequestHeader("username") String authUsername,
-//                                                          @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to update trainers list for trainee: {}", traineeUsername);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            try {
-//                trainingService.updateTraineeTrainersList(traineeUsername, trainerIds);
-//                log.info("Updated trainers list for trainee: {}", traineeUsername);
-//                return ResponseEntity.ok().build();
-//            } catch (Exception e) {
-//                log.error("Failed to update trainers list for trainee: {}", traineeUsername, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//            }
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-
-
-

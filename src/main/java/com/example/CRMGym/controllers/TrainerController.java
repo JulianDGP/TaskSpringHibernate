@@ -11,6 +11,7 @@ import com.example.CRMGym.services.implementations.TrainerServiceImpl;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,20 +45,9 @@ public class TrainerController {
     /*2.Trainer Registration with POST method */
     @Operation(summary = "Register Trainer", description = "Register a new trainer")
     @PostMapping("/register")
-    public ResponseEntity<?> registerTrainer(@RequestBody TrainerDTO trainerDTO) {
+    public ResponseEntity<?> registerTrainer(@Valid @RequestBody TrainerDTO trainerDTO) {
         try {
             log.debug("Received request to create a new trainer: {}", trainerDTO);
-
-            // Required fields validation
-            if (trainerDTO.firstName() == null || trainerDTO.firstName().isBlank()) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("First Name is required.", HttpStatus.BAD_REQUEST.value()));
-            }
-            if (trainerDTO.lastName() == null || trainerDTO.lastName().isBlank()) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("Last Name is required.", HttpStatus.BAD_REQUEST.value()));
-            }
-            if (trainerDTO.specialization() == null || trainerDTO.specialization().isBlank()) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("Specialization is required.", HttpStatus.BAD_REQUEST.value()));
-            }
 
             // Convert DTO to entity
             Trainer trainer = TrainerMapper.toEntity(trainerDTO);
@@ -149,142 +139,3 @@ public class TrainerController {
 
 
 }
-
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<TrainerDTO> getTrainer(@PathVariable Long id,
-//                                                 @RequestHeader("username") String authUsername,
-//                                                 @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get trainer by ID: {}", id);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            Trainer trainer = trainerService.getTrainer(id);
-//            if (trainer == null) {
-//                log.warn("No trainer found with ID: {}", id);
-//                return ResponseEntity.notFound().build();
-//            }
-//            TrainerDTO trainerDTO = TrainerMapper.toDTO(trainer);
-//            log.info("Returned trainer with ID: {}", id);
-//            return ResponseEntity.ok(trainerDTO);
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-//
-//    @GetMapping
-//    public ResponseEntity<List<TrainerDTO>> getAllTrainers(@RequestHeader("username") String authUsername,
-//                                                           @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get all trainers");
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            List<Trainer> trainers = trainerService.getAllTrainers();
-//            List<TrainerDTO> trainerDTOs = trainers.stream()
-//                    .map(TrainerMapper::toDTO)
-//                    .toList();
-//            log.info("Returned {} trainers", trainerDTOs.size());
-//            return ResponseEntity.ok(trainerDTOs);
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-//
-//    @GetMapping("/username/{username}")
-//    public ResponseEntity<TrainerDTO> getTrainerByUsername(@PathVariable String username,
-//                                                           @RequestHeader("username") String authUsername,
-//                                                           @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to get trainer by username: {}", username);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            Trainer trainer = trainerService.getTrainerByUsername(username);
-//            if (trainer == null) {
-//                log.warn("No trainer found with username: {}", username);
-//                return ResponseEntity.notFound().build();
-//            }
-//            TrainerDTO trainerDTO = TrainerMapper.toDTO(trainer);
-//            log.info("Returned trainer with username: {}", username);
-//            return ResponseEntity.ok(trainerDTO);
-//        }
-//        log.warn("Unauthorized access attempt with username: {}", authUsername);
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-//
-//
-//
-//
-//    @PutMapping("/{id}")
-//    public ResponseEntity<TrainerDTO> updateTrainer(@PathVariable Long id,
-//                                                 @RequestBody TrainerDTO trainerDTO,
-//                                                 @RequestHeader("username") String authUsername,
-//                                                 @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to update trainer with ID: {}", id);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            Trainer trainer = TrainerMapper.toEntity(trainerDTO);
-//            trainer.setId(id);
-//            Trainer updatedTrainer = trainerService.updateTrainer(id, trainer);
-//            if (updatedTrainer == null) {
-//                log.error("Failed to find trainer with ID: {} for update", id);
-//                return ResponseEntity.notFound().build();
-//            }
-//            TrainerDTO updatedTrainerDTO = TrainerMapper.toDTO(updatedTrainer);
-//            log.info("Successfully updated trainer with ID: {}", id);
-//            return ResponseEntity.ok(updatedTrainerDTO);
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//        }
-//    }
-//
-//    @PutMapping("/{id}/change-password")
-//    public ResponseEntity<Void> changeTrainerPassword(@PathVariable Long id,
-//                                                      @RequestBody Map<String, String> request,
-//                                                      @RequestHeader("username") String authUsername,
-//                                                      @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to change password for trainer with ID: {}", id);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            try {
-//                String newPassword = request.get("newPassword");
-//                trainerService.changeTrainerPassword(id, newPassword);
-//                log.info("Trainer with ID: {} has changed their password", id);
-//                return ResponseEntity.ok().build();
-//            } catch (Exception e) {
-//                log.error("Failed to change password for trainer with ID: {}", id, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//            }
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//    }
-//
-//
-//    @DeleteMapping("/{username}")
-//    public ResponseEntity<Void> deleteTrainerByUsername(@PathVariable String username,
-//                                                        @RequestHeader("username") String authUsername,
-//                                                        @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to delete trainer with username: {}", username);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            try {
-//                trainerService.deleteTrainerByUsername(username);
-//                log.info("Successfully deleted trainer with username: {}", username);
-//                return ResponseEntity.ok().build();
-//            } catch (Exception e) {
-//                log.error("Failed to delete trainer with username: {}", username, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//            }
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//        }
-//    }
-//
-//
-//    @PutMapping("/activate/{id}")
-//    public ResponseEntity<Void> activateTrainer(@PathVariable Long id,
-//                                                @RequestParam boolean isActive,
-//                                                @RequestHeader("username") String authUsername,
-//                                                @RequestHeader("password") String authPassword) {
-//        log.debug("Received request to activate/deactivate trainer with ID: {}", id);
-//        if (userGenerationUtilities.checkCredentials(authUsername, authPassword)) {
-//            try {
-//                trainerService.activateTrainer(id, isActive);
-//                log.info("Trainer with ID: {} has been {}", id, isActive ? "activated" : "deactivated");
-//                return ResponseEntity.ok().build();
-//            } catch (Exception e) {
-//                log.error("Failed to activate/deactivate trainer with ID: {}", id, e);
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//            }
-//        } else {
-//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//        }
-//    }

@@ -23,6 +23,5 @@ public interface TraineeService {
 
     void updateTraineeActiveStatus(String username, boolean isActive);
 
-//    List<Trainee> getAllTrainees();
 
 }

@@ -14,13 +14,10 @@ import com.example.CRMGym.repositories.TraineeRepository;
 import com.example.CRMGym.repositories.TrainerRepository;
 import com.example.CRMGym.repositories.TrainingRepository;
 import com.example.CRMGym.services.TraineeService;
-import com.example.CRMGym.services.TrainingService;
-import com.example.CRMGym.utilities.UserGenerationUtilities;
-import jakarta.persistence.EntityManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -177,23 +174,3 @@ public class TraineeServiceImpl implements TraineeService {
         log.info("Updated trainee with username: {} to active status: {}", username, isActive);
     }
 }
-
-
-//    @Override
-//    public List<Trainee> getAllTrainees() {
-//        log.debug("Retrieving all trainees");
-//        return traineeRepository.findAll();
-//    }
-
-
-//
-//
-//
-//    @Override
-//    public void activateTrainee(Long id, boolean isActive) {
-//        Trainee trainee = traineeRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("Trainee not found with ID: " + id));
-//        trainee.setActive(isActive);
-//        traineeRepository.save(trainee);
-//        log.info("Trainee with ID: {} has been {}", id, isActive ? "activated" : "deactivated");
-//    }

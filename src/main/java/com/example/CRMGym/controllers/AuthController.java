@@ -50,7 +50,7 @@ public class AuthController {
 
     /* 4. Change Login password with PUT */
     @Operation(summary = "Change Password", description = "Change user password", security = @SecurityRequirement(name = "bearerAuth"))
-    @PutMapping("/change-password")
+    @PutMapping("/password")
     public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String oldPassword = request.get("oldPassword");

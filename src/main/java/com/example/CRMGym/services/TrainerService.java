@@ -20,10 +20,6 @@ public interface TrainerService {
     List<TrainingDTO> getTrainerTrainings(String username, LocalDateTime fromDate, LocalDateTime toDate, String traineeName);
 
     void updateTrainerActiveStatus(String username, boolean isActive);
-//    List<Trainer> getAllTrainers();
-//
-//    void changeTrainerPassword(Long id, String newPassword);
-//    void deleteTrainerByUsername(String username);
-//    void activateTrainer(Long id, boolean isActive);
+
 }
 

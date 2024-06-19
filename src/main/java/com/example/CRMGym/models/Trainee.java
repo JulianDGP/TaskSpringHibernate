@@ -19,6 +19,9 @@ public class Trainee extends User {
     //@NotBlank(message = "Address is required.")
     @Column(nullable = true)
     private String address;
+    // Relationships with cascade delete
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Training> trainings = new HashSet<>();
 
     public Trainee() {
     }
@@ -43,5 +46,13 @@ public class Trainee extends User {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Set<Training> getTrainings() {
+        return trainings;
+    }
+
+    public void setTrainings(Set<Training> trainings) {
+        this.trainings = trainings;
     }
 }
