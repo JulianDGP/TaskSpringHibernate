@@ -6,14 +6,18 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     @Value("${jwt.secret}")
     private String secretKeyBase64;
@@ -48,16 +52,18 @@ public class JwtTokenProvider {
         try {
             return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
         } catch (Exception e) {
-            LoggerFactory.getLogger(JwtTokenProvider.class).error("Error getting username from token", e);
+            log.error("Error getting username from token", e);
             return null;
-        }    }
+        }
+    }
+
     //Valida el token JWT
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
-            LoggerFactory.getLogger(JwtTokenProvider.class).error("Invalid JWT token", e);
+            log.error("Invalid JWT token", e);
             return false;
         }
     }

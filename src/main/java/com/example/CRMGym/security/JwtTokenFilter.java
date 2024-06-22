@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 public class JwtTokenFilter extends OncePerRequestFilter {
+    private static final Logger log = LoggerFactory.getLogger(JwtTokenFilter.class);
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
@@ -38,10 +41,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);  // Establece la autenticación en el contexto de seguridad
-                logger.debug("Authenticated user: " + username + ", setting security context"); // Registra el usuario autenticado
+                log.debug("Authenticated user: " + username + ", setting security context"); // Registra el usuario autenticado
             }
         }else{
-            logger.debug("No valid JWT token found, uri: " + request.getRequestURI()); // Registra si no se encuentra un token válido
+            log.debug("No valid JWT token found, uri: " + request.getRequestURI()); // Registra si no se encuentra un token válido
         }
         filterChain.doFilter(request, response); // Continúa con la cadena de filtros
     }

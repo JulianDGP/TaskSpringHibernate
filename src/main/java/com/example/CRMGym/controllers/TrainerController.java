@@ -7,7 +7,6 @@ import com.example.CRMGym.models.dto.TrainerDTO;
 import com.example.CRMGym.models.dto.TrainerProfileDTO;
 import com.example.CRMGym.models.dto.TrainingDTO;
 import com.example.CRMGym.services.TrainerService;
-import com.example.CRMGym.services.implementations.TrainerServiceImpl;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -22,10 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/trainers")
@@ -33,25 +30,27 @@ public class TrainerController {
 
     private static final Logger log = LoggerFactory.getLogger(TrainerController.class);
 
-    @Autowired
-    private TrainerService trainerService;
+    private final TrainerService trainerService;
+
+    private final UserGenerationUtilities userGenerationUtilities;
+
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserGenerationUtilities userGenerationUtilities;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public TrainerController(TrainerService trainerService, UserGenerationUtilities userGenerationUtilities, PasswordEncoder passwordEncoder) {
+        this.trainerService = trainerService;
+        this.userGenerationUtilities = userGenerationUtilities;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /*2.Trainer Registration with POST method */
     @Operation(summary = "Register Trainer", description = "Register a new trainer")
     @PostMapping("/register")
     public ResponseEntity<?> registerTrainer(@Valid @RequestBody TrainerDTO trainerDTO) {
+        log.info("Received request to create a new trainer: {}", trainerDTO);
         try {
-            log.debug("Received request to create a new trainer: {}", trainerDTO);
-
             // Convert DTO to entity
             Trainer trainer = TrainerMapper.toEntity(trainerDTO);
-
             // Generate Username and Password
             String username = userGenerationUtilities.generateUsername(trainer.getFirstName(), trainer.getLastName());
             String password = userGenerationUtilities.generateRandomPassword();
@@ -59,10 +58,9 @@ public class TrainerController {
             trainer.setUsername(username);
             trainer.setPassword(encodedPassword);
 
-
             // Save Trainer
             Trainer createdTrainer = trainerService.createTrainer(trainer);
-
+            log.info("Trainer created successfully: {}", createdTrainer);
             // Generate Response with Username y Password
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "username", username,
@@ -82,10 +80,13 @@ public class TrainerController {
     @Operation(summary = "Get Trainer Profile", description = "Get trainer profile", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/profile/{username}")
     public ResponseEntity<?> getTrainerProfile(@PathVariable String username) {
+        log.info("Received request to get profile for trainer: {}", username);
         try {
             TrainerProfileDTO trainerProfileDTO = trainerService.getTrainerProfile(username);
+            log.info("Returned profile for trainer: {}", username);
             return ResponseEntity.ok(trainerProfileDTO);
         } catch (Exception e) {
+            log.error("Trainer not found: {}", username, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainer not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -94,10 +95,13 @@ public class TrainerController {
     @Operation(summary = "Update Trainer Profile", description = "Update trainer profile", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/profile/{username}")
     public ResponseEntity<?> updateTrainerProfile(@PathVariable String username, @RequestBody TrainerDTO trainerDTO) {
+        log.info("Received request to update profile for trainer: {}", username);
         try {
             TrainerProfileDTO updatedTrainerProfileDTO = trainerService.updateTrainerProfile(username, trainerDTO);
+            log.info("Profile updated successfully for trainer: {}", username);
             return ResponseEntity.ok(updatedTrainerProfileDTO);
         } catch (Exception e) {
+            log.error("Trainer not found: {}", username, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainer not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -109,10 +113,13 @@ public class TrainerController {
                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
                                                  @RequestParam(required = false) String traineeName) {
+        log.info("Received request to get trainings for trainer: {}", username);
         try {
             List<TrainingDTO> trainings = trainerService.getTrainerTrainings(username, fromDate, toDate, traineeName);
+            log.info("Returned trainings for trainer: {}", username);
             return ResponseEntity.ok(trainings);
         } catch (Exception e) {
+            log.error("Trainer or Trainings not found for trainer: {}", username, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainer or Trainings not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -121,21 +128,21 @@ public class TrainerController {
     @Operation(summary = "Activate/De-Activate Trainer", description = "Activate or de-activate a trainer", security = @SecurityRequirement(name = "bearerAuth"))
     @PatchMapping("/activate")
     public ResponseEntity<?> updateTrainerActiveStatus(@RequestBody Map<String, Object> payload) {
+        String username = (String) payload.get("username");
+        boolean isActive = (Boolean) payload.get("isActive");
+        log.info("Received request to update active status for trainer: {}", username);
         try {
-            String username = (String) payload.get("username");
-            boolean isActive = (Boolean) payload.get("isActive");
-
             if (username == null || username.isBlank()) {
+                log.warn("Username is required for updating active status");
                 return ResponseEntity.badRequest().body(new ErrorResponse("Username is required.", HttpStatus.BAD_REQUEST.value()));
             }
 
             trainerService.updateTrainerActiveStatus(username, isActive);
+            log.info("Active status updated successfully for trainer: {}", username);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Error updating active status for trainer with username: {}", payload.get("username"), e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainer not found", HttpStatus.NOT_FOUND.value()));
         }
     }
-
-
 }

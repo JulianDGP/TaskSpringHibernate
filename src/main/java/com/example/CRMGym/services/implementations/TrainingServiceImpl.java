@@ -3,36 +3,25 @@ package com.example.CRMGym.services.implementations;
 import com.example.CRMGym.models.Trainee;
 import com.example.CRMGym.models.Trainer;
 import com.example.CRMGym.models.Training;
-import com.example.CRMGym.models.TrainingType;
 import com.example.CRMGym.models.dto.TrainingRequestDTO;
 import com.example.CRMGym.repositories.TraineeRepository;
 import com.example.CRMGym.repositories.TrainerRepository;
 import com.example.CRMGym.repositories.TrainingRepository;
 import com.example.CRMGym.services.TrainingService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-
 @Service
 public class TrainingServiceImpl implements TrainingService {
 
     private static final Logger log = LoggerFactory.getLogger(TrainingServiceImpl.class);
 
-    @Autowired
     private final TrainingRepository trainingRepository;
-    @Autowired
     private final TraineeRepository traineeRepository;
-    @Autowired
     private final TrainerRepository trainerRepository;
 
     @Autowired
@@ -41,7 +30,6 @@ public class TrainingServiceImpl implements TrainingService {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
     }
-
 
     @Override
     @Transactional

@@ -31,14 +31,11 @@ public class TraineeServiceImpl implements TraineeService {
 
     private static final Logger log = LoggerFactory.getLogger(TraineeServiceImpl.class);
 
-    @Autowired
     private final TraineeRepository traineeRepository;
 
-    @Autowired
-    private TrainerRepository trainerRepository;
+    private final TrainerRepository trainerRepository;
 
-    @Autowired
-    private TrainingRepository trainingRepository;
+    private final TrainingRepository trainingRepository;
 
     @Autowired
     public TraineeServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository, TrainingRepository trainingRepository) {
@@ -46,6 +43,7 @@ public class TraineeServiceImpl implements TraineeService {
         this.trainerRepository = trainerRepository;
         this.trainingRepository = trainingRepository;
     }
+
 
     /* 1.Trainee Registration */
     @Override

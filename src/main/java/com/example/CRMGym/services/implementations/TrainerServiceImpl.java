@@ -10,16 +10,12 @@ import com.example.CRMGym.models.dto.TraineeDTO;
 import com.example.CRMGym.models.dto.TrainerDTO;
 import com.example.CRMGym.models.dto.TrainerProfileDTO;
 import com.example.CRMGym.models.dto.TrainingDTO;
-import com.example.CRMGym.repositories.TraineeRepository;
 import com.example.CRMGym.repositories.TrainerRepository;
 import com.example.CRMGym.repositories.TrainingRepository;
 import com.example.CRMGym.services.TrainerService;
-import com.example.CRMGym.services.TrainingService;
-import com.example.CRMGym.utilities.UserGenerationUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +29,9 @@ public class TrainerServiceImpl implements TrainerService {
 
     private static final Logger log = LoggerFactory.getLogger(TrainerServiceImpl.class);
 
-    @Autowired
-    private TrainerRepository trainerRepository;
+    private final TrainerRepository trainerRepository;
 
-    @Autowired
-    private TrainingRepository trainingRepository;
+    private final TrainingRepository trainingRepository;
 
     @Autowired
     public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingRepository trainingRepository) {
@@ -135,7 +129,6 @@ public class TrainerServiceImpl implements TrainerService {
 
         trainer.setActive(isActive);
         trainerRepository.save(trainer);
-
         log.info("Updated trainer with username: {} to active status: {}", username, isActive);
     }
 

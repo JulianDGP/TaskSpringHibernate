@@ -32,15 +32,16 @@ import java.util.Map;
 public class TraineeController {
 
     private static final Logger log = LoggerFactory.getLogger(TraineeController.class);
+    private final TraineeService traineeService;
+    private final UserGenerationUtilities userGenerationUtilities;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private TraineeService traineeService;
-
-    @Autowired
-    private UserGenerationUtilities userGenerationUtilities;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public TraineeController(TraineeService traineeService, UserGenerationUtilities userGenerationUtilities, PasswordEncoder passwordEncoder) {
+        this.traineeService = traineeService;
+        this.userGenerationUtilities = userGenerationUtilities;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /* 1.Trainee Registration with POST method */
     @Operation(summary = "Register a new trainee")
@@ -59,6 +60,7 @@ public class TraineeController {
             trainee.setPassword(encodedPassword);
             // Save Trainee
             Trainee createdTrainee = traineeService.createTrainee(trainee);
+            log.info("Trainee created successfully: {}", createdTrainee);
             // Generate Response with Username y Password
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "username", username,
@@ -79,10 +81,13 @@ public class TraineeController {
     @Operation(summary = "Get trainee profile", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/profile/{username}")
     public ResponseEntity<?> getTraineeProfile(@PathVariable String username) {
+        log.info("Received request to get profile for trainee: {}", username);
         try {
             TraineeProfileDTO traineeProfileDTO = traineeService.getTraineeProfile(username);
+            log.info("Returned profile for trainee: {}", username);
             return ResponseEntity.ok(traineeProfileDTO);
         } catch (Exception e) {
+            log.error("Trainee not found: {}", username, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainee not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -92,10 +97,13 @@ public class TraineeController {
     @Operation(summary = "Update trainee profile", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/profile/{username}")
     public ResponseEntity<?> updateTraineeProfile(@PathVariable String username, @RequestBody TraineeDTO traineeDTO) {
+        log.info("Received request to update profile for trainee: {}", username);
         try {
             TraineeProfileDTO updatedTraineeProfileDTO = traineeService.updateTraineeProfile(username, traineeDTO);
+            log.info("Profile updated successfully for trainee: {}", username);
             return ResponseEntity.ok(updatedTraineeProfileDTO);
         } catch (Exception e) {
+            log.error("Trainee not found: {}", username, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainee not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -104,10 +112,13 @@ public class TraineeController {
     @Operation(summary = "Delete trainee profile", security = @SecurityRequirement(name = "bearerAuth"))
     @DeleteMapping("/profile/{username}")
     public ResponseEntity<?> deleteTraineeProfile(@PathVariable String username) {
+        log.info("Received request to delete profile for trainee: {}", username);
         try {
             traineeService.deleteTraineeByUsername(username);
+            log.info("Trainee profile deleted successfully: {}", username);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            log.error("Trainee not found: {}", username, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainee not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -116,10 +127,13 @@ public class TraineeController {
     @Operation(summary = "Get not assigned active trainers for a trainee", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/not-assigned/{username}")
     public ResponseEntity<?> getNotAssignedActiveTrainers(@PathVariable String username) {
+        log.info("Received request to get not assigned active trainers for trainee: {}", username);
         try {
             List<TrainerDTO> trainers = traineeService.getNotAssignedActiveTrainers(username);
+            log.info("Returned not assigned active trainers for trainee: {}", username);
             return ResponseEntity.ok(trainers);
         } catch (Exception e) {
+            log.error("Trainee not found: {}", username, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainee not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -132,10 +146,13 @@ public class TraineeController {
                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
                                                  @RequestParam(required = false) String trainerName,
                                                  @RequestParam(required = false) String trainingType) {
+        log.info("Received request to get trainings for trainee: {}", username);
         try {
             List<TrainingDTO> trainings = traineeService.getTraineeTrainings(username, fromDate, toDate, trainerName, trainingType);
+            log.info("Returned trainings for trainee: {}", username);
             return ResponseEntity.ok(trainings);
         } catch (RuntimeException e) {
+            log.error("Trainee or Trainings not found for trainee: {}", username, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Trainee or Trainings not found", HttpStatus.NOT_FOUND.value()));
         }
     }
@@ -147,12 +164,14 @@ public class TraineeController {
         try {
             String username = (String) payload.get("username");
             boolean isActive = (Boolean) payload.get("isActive");
-
+            log.info("Received request to update active status for trainee: {}", username);
             if (username == null || username.isBlank()) {
+                log.warn("Username is required for updating active status");
                 return ResponseEntity.badRequest().body(new ErrorResponse("Username is required.", HttpStatus.BAD_REQUEST.value()));
             }
 
             traineeService.updateTraineeActiveStatus(username, isActive);
+            log.info("Active status updated successfully for trainee: {}", username);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Error updating active status for trainee with username: {}", payload.get("username"), e);

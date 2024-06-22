@@ -1,17 +1,13 @@
 package com.example.CRMGym.controllers;
 
 import com.example.CRMGym.exceptions.ErrorResponse;
-import com.example.CRMGym.mappers.TrainerMapper;
 import com.example.CRMGym.mappers.TrainingMapper;
-import com.example.CRMGym.models.Trainer;
 import com.example.CRMGym.models.Training;
 import com.example.CRMGym.models.TrainingType;
-import com.example.CRMGym.models.dto.TrainerDTO;
 import com.example.CRMGym.models.dto.TrainingDTO;
 import com.example.CRMGym.models.dto.TrainingRequestDTO;
 import com.example.CRMGym.services.TrainingService;
-import com.example.CRMGym.services.implementations.TrainingServiceImpl;
-import com.example.CRMGym.utilities.UserGenerationUtilities;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
@@ -21,8 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +28,12 @@ public class TrainingController {
 
     private static final Logger log = LoggerFactory.getLogger(TrainingController.class);
 
+    private final TrainingService trainingService;
+
     @Autowired
-    private TrainingService trainingService;
+    public TrainingController(TrainingService trainingService) {
+        this.trainingService = trainingService;
+    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get Training", description = "Get training by ID", security = @SecurityRequirement(name = "bearerAuth"))
@@ -56,11 +54,11 @@ public class TrainingController {
     @Operation(summary = "Add Training", description = "Create a new training", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/create")
     public ResponseEntity<?> createTraining(@RequestBody TrainingRequestDTO trainingRequestDTO) {
+        log.debug("Received request to create a new training");
         try {
-            log.debug("Received request to create a new training");
-
             Training createdTraining = trainingService.createTraining(trainingRequestDTO);
             TrainingDTO createdTrainingDTO = TrainingMapper.toDTO(createdTraining);
+            log.info("Training created successfully: {}", createdTrainingDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdTrainingDTO);
         } catch (IllegalArgumentException e) {
             log.error("Error creating training: {}", e.getMessage(), e);
@@ -75,13 +73,14 @@ public class TrainingController {
     @Operation(summary = "Get Training Types", description = "Get all training types", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/types")
     public ResponseEntity<List<Map<String, String>>> getAllTrainingTypes() {
+        log.info("Received request to get all training types");
         List<Map<String, String>> trainingTypes = Arrays.stream(TrainingType.values())
                 .map(trainingType -> Map.of(
                         "trainingType", trainingType.name(),
                         "displayName", trainingType.getDisplayName()
                 ))
                 .collect(Collectors.toList());
-
+        log.info("Returned all training types");
         return ResponseEntity.ok(trainingTypes);
     }
 
