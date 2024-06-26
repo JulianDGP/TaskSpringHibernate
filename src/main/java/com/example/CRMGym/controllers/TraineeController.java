@@ -7,6 +7,7 @@ import com.example.CRMGym.models.dto.TraineeDTO;
 import com.example.CRMGym.models.dto.TraineeProfileDTO;
 import com.example.CRMGym.models.dto.TrainerDTO;
 import com.example.CRMGym.models.dto.TrainingDTO;
+import com.example.CRMGym.monitoring.CustomMetrics;
 import com.example.CRMGym.services.TraineeService;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,21 +36,24 @@ public class TraineeController {
     private final TraineeService traineeService;
     private final UserGenerationUtilities userGenerationUtilities;
     private final PasswordEncoder passwordEncoder;
+    private final CustomMetrics customMetrics;
+
 
     @Autowired
-    public TraineeController(TraineeService traineeService, UserGenerationUtilities userGenerationUtilities, PasswordEncoder passwordEncoder) {
+    public TraineeController(TraineeService traineeService, UserGenerationUtilities userGenerationUtilities, PasswordEncoder passwordEncoder, CustomMetrics customMetrics) {
         this.traineeService = traineeService;
         this.userGenerationUtilities = userGenerationUtilities;
         this.passwordEncoder = passwordEncoder;
+        this.customMetrics = customMetrics;
     }
 
     /* 1.Trainee Registration with POST method */
     @Operation(summary = "Register a new trainee")
     @PostMapping("/register")
     public ResponseEntity<?> registerTrainee(@Valid @RequestBody TraineeDTO traineeDTO) {
+        long startTime = System.currentTimeMillis();
         try {
             log.debug("Received request to create a new trainee: {}", traineeDTO);
-
             // Convert DTO to entity
             Trainee trainee = TraineeMapper.toEntity(traineeDTO);
             // Generate Username and Password
@@ -61,6 +65,11 @@ public class TraineeController {
             // Save Trainee
             Trainee createdTrainee = traineeService.createTrainee(trainee);
             log.info("Trainee created successfully: {}", createdTrainee);
+
+            // Record trainee registration time
+            long duration = System.currentTimeMillis() - startTime;
+            customMetrics.recordTraineeRegistrationTime(duration);
+
             // Generate Response with Username y Password
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "username", username,

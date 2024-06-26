@@ -31,6 +31,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        
+        //ignorar actuator
+        String path = request.getRequestURI();
+        if (path.startsWith("/actuator")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);  // Resuelve el token desde la solicitud
         if (token != null && jwtTokenProvider.validateToken(token)) {  // Valida el token
             String username = jwtTokenProvider.getUsername(token); // Obtiene el nombre de usuario del token

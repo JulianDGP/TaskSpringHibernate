@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/trainees/register").permitAll()// Permitir acceso a la creación de trainees
                         .requestMatchers("/api/trainers/register").permitAll()// Permitir acceso a la creación de trainers
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Permitir acceso a los endpoints de Swagger
+                        .requestMatchers("/actuator/**").permitAll() // Permitir acceso a los endpoints de actuator
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtTokenFilter(jwtTokenProvider, userDetailsService), UsernamePasswordAuthenticationFilter.class);

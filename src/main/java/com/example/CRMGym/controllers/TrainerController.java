@@ -6,6 +6,7 @@ import com.example.CRMGym.models.Trainer;
 import com.example.CRMGym.models.dto.TrainerDTO;
 import com.example.CRMGym.models.dto.TrainerProfileDTO;
 import com.example.CRMGym.models.dto.TrainingDTO;
+import com.example.CRMGym.monitoring.CustomMetrics;
 import com.example.CRMGym.services.TrainerService;
 import com.example.CRMGym.utilities.UserGenerationUtilities;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,19 +37,24 @@ public class TrainerController {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final CustomMetrics customMetrics;
+
+
     @Autowired
-    public TrainerController(TrainerService trainerService, UserGenerationUtilities userGenerationUtilities, PasswordEncoder passwordEncoder) {
+    public TrainerController(TrainerService trainerService, UserGenerationUtilities userGenerationUtilities, PasswordEncoder passwordEncoder, CustomMetrics customMetrics) {
         this.trainerService = trainerService;
         this.userGenerationUtilities = userGenerationUtilities;
         this.passwordEncoder = passwordEncoder;
+        this.customMetrics = customMetrics;
     }
 
     /*2.Trainer Registration with POST method */
     @Operation(summary = "Register Trainer", description = "Register a new trainer")
     @PostMapping("/register")
     public ResponseEntity<?> registerTrainer(@Valid @RequestBody TrainerDTO trainerDTO) {
-        log.info("Received request to create a new trainer: {}", trainerDTO);
+        long startTime = System.currentTimeMillis();
         try {
+            log.info("Received request to create a new trainer: {}", trainerDTO);
             // Convert DTO to entity
             Trainer trainer = TrainerMapper.toEntity(trainerDTO);
             // Generate Username and Password
@@ -61,6 +67,11 @@ public class TrainerController {
             // Save Trainer
             Trainer createdTrainer = trainerService.createTrainer(trainer);
             log.info("Trainer created successfully: {}", createdTrainer);
+
+            // Record trainer registration time
+            long duration = System.currentTimeMillis() - startTime;
+            customMetrics.recordTrainerRegistrationTime(duration);
+
             // Generate Response with Username y Password
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "username", username,
