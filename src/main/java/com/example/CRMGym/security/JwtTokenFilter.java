@@ -1,5 +1,6 @@
 package com.example.CRMGym.security;
 
+import com.example.CRMGym.services.TokenBlacklist;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,10 +22,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklist tokenBlacklist;
 
-    public JwtTokenFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
+
+    public JwtTokenFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService, TokenBlacklist tokenBlacklist) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklist = tokenBlacklist;
     }
 
     // Filtro principal que se ejecuta en cada solicitud
@@ -40,7 +44,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
 
         String token = resolveToken(request);  // Resuelve el token desde la solicitud
-        if (token != null && jwtTokenProvider.validateToken(token)) {  // Valida el token
+        if (token != null && jwtTokenProvider.validateToken(token) && !tokenBlacklist.isBlacklisted(token)) {  // Valida el token, tambien en la blacklist
             String username = jwtTokenProvider.getUsername(token); // Obtiene el nombre de usuario del token
             UserDetails userDetails = userDetailsService.loadUserByUsername(username); // Carga los detalles del usuario
 

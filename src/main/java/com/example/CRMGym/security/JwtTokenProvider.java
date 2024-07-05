@@ -67,4 +67,8 @@ public class JwtTokenProvider {
             return false;
         }
     }
+
+    public SecretKey getSecretKey() {
+        return secretKey;
+    }
 }

@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -72,11 +73,13 @@ public class TrainerController {
             long duration = System.currentTimeMillis() - startTime;
             customMetrics.recordTrainerRegistrationTime(duration);
 
+            // Create response map with correct order
+            Map<String, String> responseMap = new LinkedHashMap<>();
+            responseMap.put("username", username);
+            responseMap.put("password", password);
+
             // Generate Response with Username y Password
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-                    "username", username,
-                    "password", password
-            ));
+            return ResponseEntity.status(HttpStatus.CREATED).body(responseMap);
             //Error handling
         } catch (IllegalArgumentException e) {
             log.error("Error creating trainer: {}", e.getMessage(), e);
