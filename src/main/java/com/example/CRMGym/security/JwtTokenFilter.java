@@ -1,7 +1,6 @@
 package com.example.CRMGym.security;
 
 import com.example.CRMGym.services.DenyTokensList;
-import com.example.CRMGym.services.TokenBlacklist;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
