@@ -1,6 +1,6 @@
 package com.example.CRMGym.security;
 
-import com.example.CRMGym.services.TokenBlacklist;
+import com.example.CRMGym.services.DenyTokensList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -25,20 +24,20 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
-    private final TokenBlacklist tokenBlacklist;
+    private final DenyTokensList denyTokensList;
 
 
     @Autowired
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService, TokenBlacklist tokenBlacklist) {
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService, DenyTokensList denyTokensList) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
-        this.tokenBlacklist = tokenBlacklist;
+        this.denyTokensList = denyTokensList;
     }
 
     // Bean para codificar contraseñas usando BCrypt
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new CustomPasswordEncoder();
     }
 
     // Configura el AuthenticationManager con el UserDetailsService y el codificador de contraseñas
@@ -74,7 +73,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtTokenFilter jwtTokenFilter() {
-        return new JwtTokenFilter(jwtTokenProvider, userDetailsService, tokenBlacklist);
+        return new JwtTokenFilter(jwtTokenProvider, userDetailsService, denyTokensList);
     }
 
     @Bean

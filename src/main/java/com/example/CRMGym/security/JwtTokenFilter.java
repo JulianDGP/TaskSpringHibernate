@@ -1,5 +1,6 @@
 package com.example.CRMGym.security;
 
+import com.example.CRMGym.services.DenyTokensList;
 import com.example.CRMGym.services.TokenBlacklist;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,20 +23,20 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
-    private final TokenBlacklist tokenBlacklist;
+    private final DenyTokensList denyTokensList;
 
 
-    public JwtTokenFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService, TokenBlacklist tokenBlacklist) {
+    public JwtTokenFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService, DenyTokensList denyTokensList) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
-        this.tokenBlacklist = tokenBlacklist;
+        this.denyTokensList = denyTokensList;
     }
 
     // Filtro principal que se ejecuta en cada solicitud
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
+
         //ignorar actuator
         String path = request.getRequestURI();
         if (path.startsWith("/actuator")) {
@@ -44,18 +45,18 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
 
         String token = resolveToken(request);  // Resuelve el token desde la solicitud
-        if (token != null && jwtTokenProvider.validateToken(token) && !tokenBlacklist.isBlacklisted(token)) {  // Valida el token, tambien en la blacklist
+        if (token != null && jwtTokenProvider.validateToken(token) && !denyTokensList.isDenylisted(token)) {  // Valida el token, tambien en la blacklist
             String username = jwtTokenProvider.getUsername(token); // Obtiene el nombre de usuario del token
             UserDetails userDetails = userDetailsService.loadUserByUsername(username); // Carga los detalles del usuario
 
-            if(userDetails !=null) {
+            if (userDetails != null) {
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);  // Establece la autenticación en el contexto de seguridad
                 log.debug("Authenticated user: " + username + ", setting security context"); // Registra el usuario autenticado
             }
-        }else{
+        } else {
             log.debug("No valid JWT token found, uri: " + request.getRequestURI()); // Registra si no se encuentra un token válido
         }
         filterChain.doFilter(request, response); // Continúa con la cadena de filtros

@@ -2,7 +2,7 @@ package com.example.CRMGym.controllers;
 
 import com.example.CRMGym.exceptions.ErrorResponse;
 import com.example.CRMGym.security.JwtTokenProvider;
-import com.example.CRMGym.services.TokenBlacklist;
+import com.example.CRMGym.services.DenyTokensList;
 import com.example.CRMGym.services.UserService;
 import com.example.CRMGym.services.implementations.LoginAttemptServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,17 +31,17 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
     private final LoginAttemptServiceImpl loginAttemptService;
-    private final TokenBlacklist tokenBlacklist;
+    private final DenyTokensList denyTokensList;
 
 
 
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService, LoginAttemptServiceImpl loginAttemptService, TokenBlacklist tokenBlacklist) {
+    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService, LoginAttemptServiceImpl loginAttemptService, DenyTokensList denyTokensList) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
         this.loginAttemptService = loginAttemptService;
-        this.tokenBlacklist = tokenBlacklist;
+        this.denyTokensList = denyTokensList;
     }
 
     /* 3.Login with GET method */
@@ -103,7 +103,7 @@ public class AuthController {
     public ResponseEntity<?> logout(HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
         if (token != null) {
-            tokenBlacklist.addToBlacklist(token);
+            denyTokensList.addToDenylist(token);
             log.info("Token added to blacklist: {}", token);
         } else {
             log.warn("No token found in the request for logout");

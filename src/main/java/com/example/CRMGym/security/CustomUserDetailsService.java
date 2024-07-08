@@ -1,6 +1,5 @@
 package com.example.CRMGym.security;
 
-import com.example.CRMGym.models.User;
 import com.example.CRMGym.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
